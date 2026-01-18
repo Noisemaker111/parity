@@ -1,13 +1,8 @@
-import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { router } from "@/lib/rpc/router";
 
 const handler = new RPCHandler(router, {
-  interceptors: [
-    onError((error: Error) => {
-      console.error(error);
-    }),
-  ],
+  interceptors: [],
 });
 
 async function handleRequest(request: Request) {
