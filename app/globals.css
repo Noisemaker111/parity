@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -46,44 +44,8 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-/* Light mode (optional) */
 :root {
-  --radius: 0;
-  --background: #edeff2;
-  --foreground: #0b0d10;
-  --card: #edeff2;
-  --card-foreground: #0b0d10;
-  --popover: #edeff2;
-  --popover-foreground: #0b0d10;
-  --primary: #3dff8c;
-  --primary-foreground: #0b0d10;
-  --secondary: #1a1d24;
-  --secondary-foreground: #edeff2;
-  --muted: #d0d3d9;
-  --muted-foreground: #5a5f6a;
-  --accent: #1a1d24;
-  --accent-foreground: #edeff2;
-  --destructive: #ff4d4d;
-  --border: #c5c8ce;
-  --input: #c5c8ce;
-  --ring: #3dff8c;
-  --chart-1: #3dff8c;
-  --chart-2: #ffb020;
-  --chart-3: #5a5f6a;
-  --chart-4: #ff4d4d;
-  --chart-5: #edeff2;
-  --sidebar: #edeff2;
-  --sidebar-foreground: #0b0d10;
-  --sidebar-primary: #3dff8c;
-  --sidebar-primary-foreground: #0b0d10;
-  --sidebar-accent: #d0d3d9;
-  --sidebar-accent-foreground: #0b0d10;
-  --sidebar-border: #c5c8ce;
-  --sidebar-ring: #3dff8c;
-}
-
-/* Dark mode (default) */
-.dark {
+  --radius: 4px;
   --background: #0b0d10;
   --foreground: #edeff2;
   --card: #12151a;
