@@ -104,4 +104,4 @@ Fund it with SOL for transaction fees.
 
 ## License
 
-MIT
+AGPL-3.0
