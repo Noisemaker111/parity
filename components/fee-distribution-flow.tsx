@@ -344,7 +344,7 @@ export function FeeDistributionFlow() {
           <div className="relative flex w-full flex-col md:w-auto">
             {/* Locked Contract Link */}
             <a
-              className="absolute -top-10 left-1/2 -translate-x-1/2 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 font-bold text-[11px] text-primary uppercase tracking-wider transition-all hover:bg-primary/10 hover:shadow-[0_0_15px_rgba(255,140,61,0.1)]"
+              className="absolute -top-10 left-1/2 inline-flex w-fit -translate-x-1/2 items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 font-bold text-[11px] text-primary uppercase tracking-wider transition-all hover:bg-primary/10 hover:shadow-[0_0_15px_rgba(255,140,61,0.1)]"
               href="https://solscan.io/account/Eo7WjKq67rjJQSvbdBk6iA54uH3jJm61e9W888fS5E3m"
               rel="noopener noreferrer"
               target="_blank"
@@ -354,41 +354,41 @@ export function FeeDistributionFlow() {
             </a>
 
             <div className="grid grid-rows-4 gap-4 md:gap-0">
-            {FLOW_DATA.map((item, index) => (
-              <div
-                className="flex min-h-[100px] items-center md:h-24 md:min-h-0"
-                key={item.id}
-              >
-                <motion.div
-                  className="group relative flex h-[90px] w-full items-center gap-5 rounded-2xl border border-border/60 bg-background/50 p-5 transition-all hover:border-primary/50 hover:bg-background/80 md:ml-0 md:min-w-[340px]"
-                  initial={{ opacity: 0, x: 20 }}
-                  transition={{ delay: 0.5 + index * 0.1 }}
-                  viewport={{ once: true, margin: "0px 0px -50px 0px" }}
-                  whileInView={{ opacity: 1, x: 0 }}
+              {FLOW_DATA.map((item, index) => (
+                <div
+                  className="flex min-h-[100px] items-center md:h-24 md:min-h-0"
+                  key={item.id}
                 >
-                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/5 text-primary shadow-inner transition-colors group-hover:bg-primary/10">
-                    <item.icon className="size-6" weight="bold" />
-                  </div>
-                  <div className="flex-1 overflow-hidden">
-                    <div className="mb-0.5 flex items-center justify-between">
-                      <h3 className="mr-2 truncate font-bold text-foreground/90 text-sm tracking-tight">
-                        {item.label}
-                      </h3>
-                      <div className="flex shrink-0 flex-col items-end self-center">
-                        <span className="font-black font-mono text-primary text-xl leading-none">
-                          {item.percent}%
-                        </span>
-                      </div>
+                  <motion.div
+                    className="group relative flex h-[90px] w-full items-center gap-5 rounded-2xl border border-border/60 bg-background/50 p-5 transition-all hover:border-primary/50 hover:bg-background/80 md:ml-0 md:min-w-[340px]"
+                    initial={{ opacity: 0, x: 20 }}
+                    transition={{ delay: 0.5 + index * 0.1 }}
+                    viewport={{ once: true, margin: "0px 0px -50px 0px" }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                  >
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/5 text-primary shadow-inner transition-colors group-hover:bg-primary/10">
+                      <item.icon className="size-6" weight="bold" />
                     </div>
-                    <p className="max-w-[180px] truncate text-[11px] text-muted-foreground/70 leading-tight">
-                      {item.description}
-                    </p>
-                  </div>
+                    <div className="flex-1 overflow-hidden">
+                      <div className="mb-0.5 flex items-center justify-between">
+                        <h3 className="mr-2 truncate font-bold text-foreground/90 text-sm tracking-tight">
+                          {item.label}
+                        </h3>
+                        <div className="flex shrink-0 flex-col items-end self-center">
+                          <span className="font-black font-mono text-primary text-xl leading-none">
+                            {item.percent}%
+                          </span>
+                        </div>
+                      </div>
+                      <p className="max-w-[180px] truncate text-[11px] text-muted-foreground/70 leading-tight">
+                        {item.description}
+                      </p>
+                    </div>
 
-                  <div className="absolute top-1/2 -left-1.5 -ml-[1px] hidden size-3 -translate-y-1/2 rotate-45 border-primary/30 border-b border-l bg-background/80 md:block" />
-                </motion.div>
-              </div>
-            ))}
+                    <div className="absolute top-1/2 -left-1.5 -ml-[1px] hidden size-3 -translate-y-1/2 rotate-45 border-primary/30 border-b border-l bg-background/80 md:block" />
+                  </motion.div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
