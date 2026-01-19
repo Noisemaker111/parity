@@ -6,10 +6,17 @@ import {
   swapQuote,
   TokenDecimal,
 } from "@meteora-ag/dynamic-bonding-curve-sdk";
-import { Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  VersionedTransaction,
+  ComputeBudgetProgram,
+} from "@solana/web3.js";
+
 import BN from "bn.js";
 import type { CurvePreset } from "./dbc";
 import { getConnection } from "./solana";
+import { lamportsToSol } from "./solana-utils";
 
 const CONFIG_ADDRESS = process.env.METEORA_CONFIG_ADDRESS;
 
@@ -26,7 +33,9 @@ export interface CreatePoolResult {
   transaction: string;
   baseMint: string;
   poolAddress: string;
+  lastValidBlockHeight: number;
 }
+
 
 export async function buildCreatePoolTransaction(params: {
   name: string;
@@ -69,12 +78,20 @@ export async function buildCreatePoolTransaction(params: {
   const { blockhash, lastValidBlockHeight } =
     await connection.getLatestBlockhash();
 
+  const priorityFeeIx = ComputeBudgetProgram.setComputeUnitPrice({
+    microLamports: 50_000,
+  });
+
   let serialized: string;
   if (tx instanceof VersionedTransaction) {
+    // For versioned transactions, we'd need to rebuild the message to add instructions.
+    // However, if the SDK returns a VersionedTransaction, it might already be compiled.
+    // For now, let's focus on adding it to legacy transactions if possible.
     tx.message.recentBlockhash = blockhash;
     tx.sign([baseMint]);
     serialized = Buffer.from(tx.serialize()).toString("base64");
   } else {
+    tx.instructions.unshift(priorityFeeIx);
     tx.recentBlockhash = blockhash;
     tx.lastValidBlockHeight = lastValidBlockHeight;
     tx.feePayer = creator;
@@ -88,8 +105,10 @@ export async function buildCreatePoolTransaction(params: {
     transaction: serialized,
     baseMint: baseMint.publicKey.toBase58(),
     poolAddress: poolAddress.toBase58(),
+    lastValidBlockHeight,
   };
 }
+
 
 export async function verifyPoolCreated(
   poolAddress: string,
@@ -151,7 +170,7 @@ export async function getPoolPriceData(
       poolAddress,
       baseMint: pool.baseMint.toBase58(),
       spotPrice: price.toNumber(),
-      poolLiquiditySol: Number(pool.quoteReserve) / 1e9,
+      poolLiquiditySol: lamportsToSol(pool.quoteReserve),
     };
   } catch {
     return null;
@@ -211,7 +230,9 @@ export interface SwapTransactionResult {
   inAmount: string;
   outAmount: string;
   minOutAmount: string;
+  lastValidBlockHeight: number;
 }
+
 
 export async function buildSwapTransaction(params: {
   poolAddress: string;
@@ -269,11 +290,16 @@ export async function buildSwapTransaction(params: {
   const { blockhash, lastValidBlockHeight } =
     await connection.getLatestBlockhash();
 
+  const priorityFeeIx = ComputeBudgetProgram.setComputeUnitPrice({
+    microLamports: 50_000,
+  });
+
   let serialized: string;
   if (tx instanceof VersionedTransaction) {
     tx.message.recentBlockhash = blockhash;
     serialized = Buffer.from(tx.serialize()).toString("base64");
   } else {
+    tx.instructions.unshift(priorityFeeIx);
     tx.recentBlockhash = blockhash;
     tx.lastValidBlockHeight = lastValidBlockHeight;
     tx.feePayer = userPubkey;
@@ -287,5 +313,7 @@ export async function buildSwapTransaction(params: {
     inAmount: inAmount.toString(),
     outAmount: quote.outputAmount.toString(),
     minOutAmount: quote.minimumAmountOut.toString(),
+    lastValidBlockHeight,
   };
 }
+
