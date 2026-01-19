@@ -171,7 +171,7 @@ function TokenCard({
   return (
     <Link
       className="group block border border-border bg-card p-5 transition-all hover:border-foreground/20 hover:shadow-lg"
-      href={`/launch/${launch.id}`}
+      href={`/launch/${launch.tokenMint ?? launch.id}`}
     >
       {/* Header */}
       <div className="mb-4 flex items-start justify-between">

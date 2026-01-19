@@ -112,11 +112,12 @@ export const launchRouter = {
   get: publicProcedure
     .input(z.object({ id: z.string() }))
     .handler(async ({ input }) => {
-      const [result] = await db
-        .select()
-        .from(launch)
-        .where(eq(launch.id, input.id))
-        .limit(1);
+      const isUUID = input.id.includes("-") && input.id.length === 36;
+      const condition = isUUID
+        ? eq(launch.id, input.id)
+        : eq(launch.tokenMint, input.id);
+
+      const [result] = await db.select().from(launch).where(condition).limit(1);
       if (!result) {
         throw new Error("Launch not found");
       }
@@ -220,8 +221,7 @@ export const launchRouter = {
         }
       }
 
-      const uri =
-        existing.image || `https://parity.app/api/metadata/${existing.id}.json`;
+      const uri = `https://parity.app/api/metadata/${existing.id}.json`;
       const result = await buildCreatePoolTransaction({
         name: existing.name,
         symbol: existing.symbol,

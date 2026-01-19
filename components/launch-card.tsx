@@ -12,6 +12,7 @@ interface Launch {
   symbol: string;
   status: "pending" | "active" | "migrated" | "failed";
   charityName: string | null;
+  tokenMint: string | null;
   createdAt: Date;
 }
 
@@ -45,7 +46,7 @@ export function LaunchCard({ launch }: { launch: Launch }) {
   return (
     <Link
       className="block border border-border bg-card p-4 transition-colors hover:border-muted-foreground"
-      href={`/launch/${launch.id}`}
+      href={`/launch/${launch.tokenMint ?? launch.id}`}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">

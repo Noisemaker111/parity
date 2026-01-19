@@ -1,15 +1,19 @@
 "use client";
 
 import {
+  ImageIcon,
   InfoIcon,
   LockSimpleIcon,
   RocketIcon,
+  SpinnerIcon,
   TrendDownIcon,
   WarningIcon,
+  XIcon,
 } from "@phosphor-icons/react";
 import { useMutation } from "@tanstack/react-query";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { rpc } from "@/lib/rpc/client";
 
@@ -17,6 +21,7 @@ interface FormErrors {
   name?: string;
   symbol?: string;
   charityWallet?: string;
+  image?: string;
 }
 
 function validateForm(form: {
@@ -75,12 +80,79 @@ export default function CreatePage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const uploadImage = useCallback(async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setErrors((prev) => ({ ...prev, image: "Please upload an image file" }));
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors((prev) => ({
+        ...prev,
+        image: "Image must be less than 5MB",
+      }));
+      return;
+    }
+
+    setErrors((prev) => ({ ...prev, image: undefined }));
+    setIsUploading(true);
+
+    const preview = URL.createObjectURL(file);
+    setImagePreview(preview);
+
+    try {
+      const { url } = await rpc.upload.image({ file });
+      setImageUrl(url);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to upload image";
+      setErrors((prev) => ({ ...prev, image: message }));
+      setImagePreview(null);
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        uploadImage(file);
+      }
+    },
+    [uploadImage]
+  );
+
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        uploadImage(file);
+      }
+    },
+    [uploadImage]
+  );
+
+  const removeImage = useCallback(() => {
+    setImageUrl(null);
+    setImagePreview(null);
+    setErrors((prev) => ({ ...prev, image: undefined }));
+  }, []);
+
   const createMutation = useMutation({
     mutationFn: () =>
       rpc.launch.create({
         name: form.name.trim(),
         symbol: form.symbol.trim().toUpperCase(),
         description: form.description.trim() || undefined,
+        image: imageUrl || undefined,
         charityWallet: form.charityWallet.trim(),
         charityName: form.charityName.trim() || undefined,
       }),
@@ -190,6 +262,71 @@ export default function CreatePage() {
               value={form.description}
             />
           </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm" htmlFor="image-upload">
+              Token Image
+              <span className="ml-1 text-muted-foreground">(optional)</span>
+            </label>
+            {imagePreview ? (
+              <div className="relative inline-block">
+                <div className="relative size-24 overflow-hidden border border-border bg-card">
+                  <Image
+                    alt="Token image preview"
+                    className="object-cover"
+                    fill
+                    src={imagePreview}
+                  />
+                  {isUploading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                      <SpinnerIcon className="size-5 animate-spin text-primary" />
+                    </div>
+                  )}
+                </div>
+                <button
+                  className="absolute -top-2 -right-2 flex size-5 items-center justify-center bg-destructive text-destructive-foreground transition-opacity hover:opacity-80"
+                  onClick={removeImage}
+                  type="button"
+                >
+                  <XIcon className="size-3" weight="bold" />
+                </button>
+              </div>
+            ) : (
+              <button
+                className={`flex h-24 w-full items-center justify-center border border-dashed transition-colors ${
+                  isDragging
+                    ? "border-primary bg-primary/5"
+                    : "border-border bg-card hover:border-muted-foreground"
+                }`}
+                onClick={() => document.getElementById("image-upload")?.click()}
+                onDragLeave={() => setIsDragging(false)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDrop={handleDrop}
+                type="button"
+              >
+                <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                  <ImageIcon className="size-6" />
+                  <span className="text-xs">Drop image or click to upload</span>
+                </div>
+              </button>
+            )}
+            <input
+              accept="image/*"
+              className="hidden"
+              id="image-upload"
+              onChange={handleFileSelect}
+              type="file"
+            />
+            {errors.image && (
+              <p className="mt-1.5 flex items-center gap-1 text-destructive text-xs">
+                <WarningIcon className="size-3" weight="bold" />
+                {errors.image}
+              </p>
+            )}
+          </div>
         </section>
 
         <section className="space-y-4">
@@ -295,7 +432,7 @@ export default function CreatePage() {
 
         <button
           className="flex h-12 w-full items-center justify-center gap-2 bg-primary font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={!isAuthenticated || createMutation.isPending}
+          disabled={!isAuthenticated || createMutation.isPending || isUploading}
           type="submit"
         >
           {!isAuthenticated && (
