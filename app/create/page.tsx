@@ -11,7 +11,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CHARITIES, CharitySelect } from "@/components/create/charity-select";
 import { FeeStructureInfo } from "@/components/create/fee-structure-info";
 
@@ -20,6 +20,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn, useSession } from "@/lib/auth-client";
 import { rpc } from "@/lib/rpc/client";
+
+const CREATE_FORM_STORAGE_KEY = "parity_create_form_state";
 
 interface FormErrors {
   name?: string;
@@ -93,6 +95,33 @@ export default function CreatePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(CREATE_FORM_STORAGE_KEY);
+    if (saved) {
+      try {
+        const { form: savedForm, imageUrl: savedImageUrl } = JSON.parse(saved);
+        if (savedForm) {
+          setForm(savedForm);
+        }
+        if (savedImageUrl) {
+          setImageUrl(savedImageUrl);
+          setImagePreview(savedImageUrl);
+        }
+      } catch (e) {
+        console.error("Failed to parse saved form state", e);
+      }
+    }
+  }, []);
+
+  // Save to localStorage on changes
+  useEffect(() => {
+    localStorage.setItem(
+      CREATE_FORM_STORAGE_KEY,
+      JSON.stringify({ form, imageUrl })
+    );
+  }, [form, imageUrl]);
+
   const uploadImage = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) {
       setErrors((prev) => ({ ...prev, image: "Please upload an image file" }));
@@ -165,6 +194,7 @@ export default function CreatePage() {
         charityName: data.charityName.trim() || undefined,
       }),
     onSuccess: (data) => {
+      localStorage.removeItem(CREATE_FORM_STORAGE_KEY);
       router.push(`/${data.id}`);
     },
   });
@@ -432,7 +462,11 @@ export default function CreatePage() {
             onClick={
               isAuthenticated
                 ? undefined
-                : () => signIn.social({ provider: "twitter" })
+                : () =>
+                    signIn.social({
+                      provider: "twitter",
+                      callbackURL: window.location.href,
+                    })
             }
             type={isAuthenticated ? "submit" : "button"}
           >
